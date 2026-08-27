@@ -31,7 +31,7 @@ export default function AccessPage() {
                 <h1 className="text-[#E8ECF4] font-semibold text-lg text-center mb-1">
                     U.S. Air Force Officer Portfolio Portal
                 </h1>
-                <p className="text-[#7A8BA8] text-xs text-center mb-6">Secure Access Portal (Demo)</p>
+                <p className="text-[#7A8BA8] text-xs text-center mb-6">Secure Access Portal (USAF)</p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <label className="block text-xs text-[#7A8BA8] uppercase tracking-wide">
