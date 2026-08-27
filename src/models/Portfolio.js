@@ -5,9 +5,10 @@ const PortfolioSchema = new Schema({
     officerName: String,
     rank: String,
     accessCode: { type: String, required: true }, // hash this in seed script
+    password: { type: String, required: true },
     status: { type: String, enum: ['active', 'restricted', 'frozen'], default: 'frozen' },
     totalValue: Number,
-    assets: {   
+    assets: {
         retirement: Number,
         investments: Number,
         realAssets: Number,
@@ -27,6 +28,7 @@ const PortfolioSchema = new Schema({
         reason: String,
         lockedActions: [String],
     },
+
 }, { timestamps: true });
 
 export default mongoose.models.Portfolio || mongoose.model('Portfolio', PortfolioSchema);

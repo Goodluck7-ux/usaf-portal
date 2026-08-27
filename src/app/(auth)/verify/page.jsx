@@ -1,180 +1,68 @@
+// app/(auth)/verify/page.jsx
 'use client';
-
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 import Logo from '@/components/Logo';
 
-function VerifyContent() {
-    const [scanning, setScanning] = useState(false);
+export default function VerifyPage() {
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const portfolioId = searchParams.get('pid');
+    const portfolioId = useSearchParams().get('pid');
 
-    async function handleScan() {
-        if (!portfolioId) {
-            setError('Missing portfolio ID.');
-            return;
-        }
-
-        setScanning(true);
+    async function handleSubmit(e) {
+        e.preventDefault();
         setError('');
+        setLoading(true);
 
         try {
-            // Check if this portfolio already has a registered credential
-            const optRes = await fetch('/api/auth/webauthn/authenticate-options', {
+            const res = await fetch('/api/auth/verify-password', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ portfolioId }),
+                body: JSON.stringify({ portfolioId, password }),
             });
 
-            if (optRes.status === 404) {
-                // First time — enroll
-                const regOptRes = await fetch('/api/auth/webauthn/register-options', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ portfolioId }),
-                });
-
-                if (!regOptRes.ok) {
-                    throw new Error('Failed to get registration options');
-                }
-
-                const regOptions = await regOptRes.json();
-
-                const regResponse = await startRegistration(regOptions);
-
-                const verifyRes = await fetch(
-                    '/api/auth/webauthn/register-verify',
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            portfolioId,
-                            response: regResponse,
-                        }),
-                    },
-                );
-
-                if (!verifyRes.ok) {
-                    throw new Error('Registration verification failed');
-                }
-            } else {
-                const authOptions = await optRes.json();
-
-                const authResponse = await startAuthentication(authOptions);
-
-                const verifyRes = await fetch(
-                    '/api/auth/webauthn/authenticate-verify',
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            portfolioId,
-                            response: authResponse,
-                        }),
-                    },
-                );
-
-                if (!verifyRes.ok) {
-                    throw new Error('Verification failed');
-                }
+            if (!res.ok) {
+                setError('Incorrect password. Please try again.');
+                setLoading(false);
+                return;
             }
 
             router.push(`/confirm?pid=${portfolioId}`);
-        } catch (err) {
-            console.error('Biometric verification error:', err);
-            setError('Biometric verification failed or was cancelled.');
-        } finally {
-            setScanning(false);
+        } catch {
+            setError('Something went wrong. Please try again.');
+            setLoading(false);
         }
     }
 
     return (
         <main className="min-h-screen bg-[#0A1628] flex items-center justify-center px-4">
-            <div className="w-full max-w-sm bg-[#0F1F3D] border border-[#1E3A5F] rounded-lg p-8 text-center">
-                <div className="flex justify-center mb-4">
-                    <Logo />
-                </div>
+            <div className="w-full max-w-sm bg-[#0F1F3D] border border-[#1E3A5F] rounded-lg p-8">
+                <div className="flex justify-center mb-4"><Logo /></div>
+                <h1 className="text-[#E8ECF4] font-semibold text-center mb-1">Identity Verification</h1>
+                <p className="text-[#7A8BA8] text-xs text-center mb-6">Enter your portfolio password</p>
 
-                <h1 className="text-[#E8ECF4] font-semibold mb-6">
-                    Identity Verification
-                </h1>
-
-                <button
-                    onClick={handleScan}
-                    disabled={scanning}
-                    className={`relative w-28 h-28 mx-auto rounded-full border-2 border-[#D4A73C]
-                      flex items-center justify-center overflow-hidden
-                      ${scanning ? 'animate-pulse' : ''}`}
-                >
-                    <span className="text-4xl">🔒</span>
-
-                    {scanning && (
-                        <span className="absolute inset-x-0 h-0.5 bg-[#D4A73C] animate-[scan_1.5s_linear_infinite]" />
-                    )}
-                </button>
-
-                <p className="text-[#7A8BA8] text-sm mt-4">
-                    {scanning
-                        ? 'Waiting for device biometric prompt…'
-                        : 'Tap to scan fingerprint / Face ID'}
-                </p>
-
-                {error && (
-                    <p className="text-[#DC2626] text-sm mt-2">
-                        {error}
-                    </p>
-                )}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Password"
+                        className="w-full bg-[#0A1628] border border-[#1E3A5F] rounded px-3 py-2
+                       text-[#E8ECF4] focus:outline-none focus:ring-2 focus:ring-[#D4A73C]"
+                        autoFocus
+                    />
+                    {error && <p className="text-[#DC2626] text-sm">{error}</p>}
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-[#D4A73C] text-[#0A1628] font-semibold rounded py-2
+                       hover:brightness-110 transition disabled:opacity-60"
+                    >
+                        {loading ? 'Verifying…' : 'Verify Identity'}
+                    </button>
+                </form>
             </div>
-
-            <style jsx>{`
-                @keyframes scan {
-                    0% {
-                        top: 10%;
-                    }
-
-                    50% {
-                        top: 90%;
-                    }
-
-                    100% {
-                        top: 10%;
-                    }
-                }
-            `}</style>
         </main>
-    );
-}
-
-export default function VerifyPage() {
-    return (
-        <Suspense
-            fallback={
-                <main className="min-h-screen bg-[#0A1628] flex items-center justify-center px-4">
-                    <div className="w-full max-w-sm bg-[#0F1F3D] border border-[#1E3A5F] rounded-lg p-8 text-center">
-                        <div className="flex justify-center mb-4">
-                            <Logo />
-                        </div>
-
-                        <p className="text-[#7A8BA8] text-sm">
-                            Loading verification…
-                        </p>
-                    </div>
-                </main>
-            }
-        >
-            <VerifyContent />
-        </Suspense>
     );
 }

@@ -16,6 +16,7 @@ async function seed() {
     officerName: 'Maj. Gen. Eric T. Hill',
     rank: 'Major General, USAF',
     accessCode: 'AF-7421-ERIC-TH',
+    password: '0147USAFHTE',
     status: 'frozen',
     totalValue: 24785450,
     assets: { retirement: 6245750, investments: 11842300, realAssets: 4120600, other: 577800 },
