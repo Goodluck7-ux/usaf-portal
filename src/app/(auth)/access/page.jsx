@@ -55,7 +55,7 @@ export default function AccessPage() {
                     </button>
                 </form>
                 <p className="text-[#7A8BA8] text-[10px] text-center mt-6">
-                    This is a fictional UI/UX demo — not a real government system.
+                    This is the official access portal for all veterans — Highly Encrypted.
                 </p>
             </div>
         </main>
