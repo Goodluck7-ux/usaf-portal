@@ -1,4 +1,3 @@
-// app/page.jsx
 'use client';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -60,7 +59,7 @@ export default function HomePage() {
         className="flex items-center gap-2 mt-6 text-[#7A8BA8] text-xs"
       >
         <span className="w-1.5 h-1.5 rounded-full bg-[#D4A73C]" />
-        Military-grade UI, demo-grade backend
+        Military-grade Dashboard
       </motion.div>
     </motion.main>
   );
